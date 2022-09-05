@@ -6,3 +6,4 @@
     1.2a create env.test in project folder with following sample line:
          PGDATABASE=database_name_here
     
+      
