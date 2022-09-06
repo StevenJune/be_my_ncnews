@@ -19,7 +19,7 @@ exports.selectArticleById = (article_id) => {
             status: 400,
             msg: `No article found for article_id: ${article_id}`,
           });
-        }
+        }   
         return article;
       });
    

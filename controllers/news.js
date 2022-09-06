@@ -3,7 +3,7 @@ const { selectAllTopics,
       } = require("../models/news.js");
 
 exports.getApi = (req, res) => {
-  res.status(200).send({ message: "all ok" });
+  res.status(200).send({ message: "all ok"    });
 };
 
 exports.getTopics = (req, res, next) => {
@@ -14,7 +14,7 @@ exports.getTopics = (req, res, next) => {
     .catch((err) => {
       next(err);
     });
-};
+};   
 
 exports.getArticlesById = (req, res, next) => {
   const article_id = req.params.article_id;
