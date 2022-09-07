@@ -32,7 +32,7 @@ describe("3. GET /api/topics", () => {
       });
   });
 });
-
+// the following is outdated, but kept it for later reference only :)
 describe("4. GET /api/articles/:article_id", () => {
   test("status:200, responds with a single matching article", () => {
     const article_id = 2;
@@ -48,6 +48,7 @@ describe("4. GET /api/articles/:article_id", () => {
           topic: "mitch",
           created_at: "2020-10-16T05:03:00.000Z",
           votes: 0,
+          comment_count: "1",
         });
       });
   });
@@ -119,7 +120,7 @@ describe("6. PATCH /api/articles/:article_id", () => {
       });
   });
 
-  it("status:201, responds with invalid post key", () => {
+  it("status:400, responds with invalid post key", () => {
     const votesCount = {
       inc_xotes: 200,
     };
@@ -128,31 +129,31 @@ describe("6. PATCH /api/articles/:article_id", () => {
       .send(votesCount)
       .expect(400)
       .then(({ body }) => {
-        expect(body.msg).toBe(
-          `post key field should have inc_votes`
-        );
-      });
-   });
-
-   test("status:400, patch article_id does not exist in table", () => {
-    const article_id = 999;
-    const votesCount = {
-        inc_votes: 200,
-      };
-    return request(app)
-      .patch(`/api/articles/${article_id}`)
-      .send(votesCount)
-       .expect(400)
-      .then(({ body }) => {
-        expect(body.msg).toBe(`No article found for updating votes in this article_id : ${article_id}`);
+        expect(body.msg).toBe(`post key field should have inc_votes`);
       });
   });
 
-  test.only("status:400, invalid article_id feed in", () => {
+  test("status:404, patch article_id does not exist in table", () => {
+    const article_id = 999;
+    const votesCount = {
+      inc_votes: 200,
+    };
+    return request(app)
+      .patch(`/api/articles/${article_id}`)
+      .send(votesCount)
+      .expect(404)
+      .then(({ body }) => {
+        expect(body.msg).toBe(
+          `No article found for updating votes in this article_id : ${article_id}`
+        );
+      });
+  });
+
+  test("status:400, invalid article_id feed in", () => {
     const article_id = "banana";
     const votesCount = {
-        inc_votes: 200,
-      };
+      inc_votes: 200,
+    };
     return request(app)
       .patch(`/api/articles/${article_id}`)
       .send(votesCount)
@@ -164,103 +165,112 @@ describe("6. PATCH /api/articles/:article_id", () => {
       });
   });
 
+  test("status:400, invalid value of inc_votes feed in", () => {
+    const article_id = "banana";
+    const votesCount = {
+      inc_votes: "a2b0c0d",
+    };
+    return request(app)
+      .patch(`/api/articles/${article_id}`)
+      .send(votesCount)
+      .expect(400)
+      .then(({ body }) => {
+        expect(body.msg).toBe(`invalid value of inc_votes`);
+      });
+  });
 });
 
+describe("7. GET /api/articles/:article_id", () => {
+  test("status:200, responds with a single matching article with comment count", () => {
+    const article_id = 3;
+    return request(app)
+      .get(`/api/articles/${article_id}`)
+      .expect(200)
+      .then(({ body }) => {
+        expect(body.article).toEqual({
+          article_id: article_id,
+          title: "Eight pug gifs that remind me of mitch",
+          topic: "mitch",
+          author: "icellusedkars",
+          body: "some gifs",
+          created_at: "2020-11-03T09:12:00.000Z",
+          votes: 0,
+          comment_count: "2",
+        });
+      });
+  });
 
-describe("7. GET /api/articles/:article_id/comment", () => {
-    test("status:200, responds with a single matching article with comment count", () => {
-      const article_id = 3;
-      return request(app)
-        .get(`/api/articles/${article_id}/comment`)
-        .expect(200)
-        .then(({ body }) => {
-          expect(body.article).toEqual({
-            article_id: article_id,
-            title : '22 Amazing open source React projects',
-            topic : 'coding',
-            author : 'happyamy2016', 
-            body : 'This is a collection of open source apps built with React.JS library. In this observation, we compared nearly 800 projects to pick the top 22. (React Native: 11, React: 11). To evaluate the quality, Mybridge AI considered a variety of factors to determine how useful the projects are for programmers. To give you an idea on the quality, the average number of Github stars from the 22 projects was 1,681.',
-            created_at : '2020-02-29 11:12:00',
-            votes : 0,
-            comment_count : 10, 
-          });
-        });
-    });
-  
-    test("status:400, article_id does not exist in table", () => {
-      const article_id = 999;
-      return request(app)
-        .get(`/api/articles/${article_id}`)
-        .expect(400)
-        .then(({ body }) => {
-          expect(body.msg).toBe(`No article found for article_id: ${article_id}`);
-        });
-    });
-  
-    test("status:400, invalid article_id feed in", () => {
-      const article_id = "apple";
-      return request(app)
-        .get(`/api/articles/${article_id}`)
-        .expect(400)
-        .then(({ body }) => {
-          expect(body.msg).toBe(
-            `invalid input syntax for type integer: "${article_id}"`
+  test("status:400, article_id does not exist in table", () => {
+    const article_id = 999;
+    return request(app)
+      .get(`/api/articles/${article_id}`)
+      .expect(400)
+      .then(({ body }) => {
+        expect(body.msg).toBe(`No article found for article_id: ${article_id}`);
+      });
+  });
+
+  test("status:400, invalid article_id feed in", () => {
+    const article_id = "apple";
+    return request(app)
+      .get(`/api/articles/${article_id}`)
+      .expect(400)
+      .then(({ body }) => {
+        expect(body.msg).toBe(
+          `invalid input syntax for type integer: "${article_id}"`
+        );
+      });
+  });
+});
+
+describe.skip("8. GET /api/articles?topic=:topic", () => {
+  test("status:200, provide topic and responds with array of sorted articles", () => {
+    const topic = "coding";
+    return request(app)
+      .get(`/api/articles?topic=${topic}`) //${topic}`)
+      .expect(200)
+      .then(({ body }) => {
+        console.log(body, "<<<body");
+        const { articles } = body;
+        expect(articles).toBeInstanceOf(Array);
+        expect(articles.length > 0).toBe(true);
+        expect(articles).toBeSortedBy("created_at", { descending: true });
+        articles.forEach((article) => {
+          expect(article).toEqual(
+            expect.objectContaining({
+              author: expect.any(String),
+              title: expect.any(String),
+              article_id: expect.any(Number),
+              topic: expect.any(String),
+              created_at: expect.any(Date),
+              votes: expect.any(Number),
+              comment_count: expect.any(Number),
+            })
           );
         });
-    });
+      });
   });
-  
- 
-  describe.skip("8. GET /api/articles?topic=:topic", () => {
-    test("status:200, provide topic and responds with array of sorted articles", () => {
-      const topic = 'coding';
-      return request(app)
-        .get(`/api/articles?topic=coding`)  //${topic}`)
-        .expect(200)
-        .then(({ body }) => {
-          console.log(body,'<<<body')
-          const { articles } = body;
-          expect(articles).toBeInstanceOf(Array);
-          expect(articles.length > 0).toBe(true);
-          expect(articles).toBeSortedBy('created_at', {descending: true})
-          articles.forEach((article) => {
-            expect(article).toEqual(
-              expect.objectContaining({
-                author: expect.any(String),
-                title: expect.any(String),
-                article_id: expect.any(Number),
-                topic: expect.any(String),
-                created_at: expect.any(Date),
-                votes: expect.any(Number),
-                comment_count: expect.any(Number),
-               
-              })
-            );
-          });
-        });
-        });
-    //});
-  
-    test("status:400, article_id does not exist in table", () => {
-      const article_id = 999;
-      return request(app)
-        .get(`/api/articles/${article_id}`)
-        .expect(400)
-        .then(({ body }) => {
-          expect(body.msg).toBe(`No article found for article_id: ${article_id}`);
-        });
-    });
-  
-    test("status:400, invalid article_id feed in", () => {
-      const article_id = "apple";
-      return request(app)
-        .get(`/api/articles/${article_id}`)
-        .expect(400)
-        .then(({ body }) => {
-          expect(body.msg).toBe(
-            `invalid input syntax for type integer: "${article_id}"`
-          );
-        });
-    });
+  //});
+
+  test("status:400, article_id does not exist in table", () => {
+    const article_id = 999;
+    return request(app)
+      .get(`/api/articles/${article_id}`)
+      .expect(400)
+      .then(({ body }) => {
+        expect(body.msg).toBe(`No article found for article_id: ${article_id}`);
+      });
   });
-  
+
+  test("status:400, invalid article_id feed in", () => {
+    const article_id = "apple";
+    return request(app)
+      .get(`/api/articles/${article_id}`)
+      .expect(400)
+      .then(({ body }) => {
+        expect(body.msg).toBe(
+          `invalid input syntax for type integer: "${article_id}"`
+        );
+      });
+  });
+});

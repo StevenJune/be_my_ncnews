@@ -3,6 +3,8 @@ const {
   selectArticleById,
   selectAllUsers,
   updateArticleById,
+  searchArticlesByTopic,
+  selectArticleByIdComment,
 } = require("../models/news.js");
 
 exports.getApi = (req, res) => {
@@ -39,7 +41,6 @@ exports.getUsers = (req, res, next) => {
 };
 
 exports.patchArticlesById = (req, res, next) => {
-  //console.log("inside the patch content");
   const article_id = req.params.article_id;
   let body = "";
   req.on("data", (packet) => {
@@ -47,46 +48,35 @@ exports.patchArticlesById = (req, res, next) => {
   });
   req.on("end", () => {
     let amendArticle = JSON.parse(body);
-    //console.log(amendArticle,'<<<<1')
-    //if (Object, keys(amendArticle).length === 0) {
-    //    console.log(amendArticle,'<<<<2')
-    //    res.status(400).send({msg: 'No post field!'});
-    //} else
-     if (!amendArticle.inc_votes) {
-        res.status(400).send({msg: 'post key field should have inc_votes'})  
+    if (!amendArticle.inc_votes) {
+      res.status(400).send({ msg: "post key field should have inc_votes" });
+    } else if (Number.isInteger(amendArticle.inc_votes) === false) {
+      res.status(400).send({ msg: "invalid value of inc_votes" });
     } else {
-        amendArticle.article_id = article_id;
-        updateArticleById(amendArticle)
-          .then((article) => {
-                    res.status(201).send({ article });
-                })
-          .catch(next);      
+      amendArticle.article_id = article_id;
+      updateArticleById(amendArticle)
+        .then((article) => {
+          res.status(201).send({ article });
+        })
+        .catch(next);
     }
   });
 };
 
-
-
 exports.getArticlesByIdComment = (req, res, next) => {
-    const article_id = req.params.article_id;
-    selectArticleByIdComment(article_id)
-      .then((article) => {
-        res.status(200).send({ article });
-      })
-      .catch(next);
-  };
-  
-exports.getArticlesByTopic = (req,res,next) => {
-    const myArg = req.params.topic
-    console.log(myArg,'<<<myArg in controller')
-    //const article_id = req.params.article_id;
-    //const topic = req.params.topic;
-    searchArticlesByTopic(myArg)
-      .then((articles)=>{
-        res.status(200).send({articles})
-      .catch(next);  
+  const article_id = req.params.article_id;
+  selectArticleByIdComment(article_id)
+    .then((article) => {
+      res.status(200).send({ article });
     })
-    
-  } 
+    .catch(next);
+};
 
-
+exports.getArticlesByTopic = (req, res, next) => {
+  const myArg = req.query.topic;
+  searchArticlesByTopic(myArg)
+    .then((articles) => {
+      res.status(200).send({ articles });
+    })
+    .catch(next);
+};
