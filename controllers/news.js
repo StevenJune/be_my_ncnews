@@ -4,6 +4,7 @@ const {
   selectAllUsers,
   updateArticleById,
   selectArticleByIdComment,
+  searchArticlesByTopic,
 } = require("../models/news.js");
 
 exports.getApi = (req, res) => {
@@ -70,4 +71,15 @@ exports.getArticlesByIdComment = (req, res, next) => {
     })
     .catch(next);
 };
+
+exports.getArticlesByTopic = (req, res, next) => {
+  const myArg = req.query.topic;
+  searchArticlesByTopic(myArg)
+    .then((articles) => {
+      res.status(200).send({ articles });
+    })
+    .catch(next);
+};
+
+
 

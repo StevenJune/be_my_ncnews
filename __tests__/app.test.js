@@ -223,3 +223,54 @@ describe("7. GET /api/articles/:article_id", () => {
   });
 });
 
+describe("8. GET /api/articles?topic=:topic", () => {
+  test("status:200, provide topic and responds with array of sorted articles", () => {
+    const topic = "mitch";
+    return request(app)
+      .get(`/api/articles?topic=${topic}`) //${topic}`)
+      .expect(200)
+      .then(({ body }) => {
+        console.log(body, "<<<body");
+        const { articles } = body;
+        expect(articles).toBeInstanceOf(Object);
+        expect(articles).toBeSortedBy("created_at", { descending: true });
+        articles.forEach((article) => {
+          expect(article).toEqual(
+            expect.objectContaining({
+              author: expect.any(String),
+              title: expect.any(String),
+              article_id: expect.any(Number),
+              topic: expect.any(String),
+              created_at: expect.any(String),
+              votes: expect.any(Number),
+              body: expect.any(String),
+              comment_count: expect.any(String),
+            })
+          );
+        });
+      });
+  });
+  //});
+
+  test("status:400, article_id does not exist in table", () => {
+    const article_id = 999;
+    return request(app)
+      .get(`/api/articles/${article_id}`)
+      .expect(400)
+      .then(({ body }) => {
+        expect(body.msg).toBe(`No article found for article_id: ${article_id}`);
+      });
+  });
+
+  test("status:400, invalid article_id feed in", () => {
+    const article_id = "apple";
+    return request(app)
+      .get(`/api/articles/${article_id}`)
+      .expect(400)
+      .then(({ body }) => {
+        expect(body.msg).toBe(
+          `invalid input syntax for type integer: "${article_id}"`
+        );
+      });
+  });
+});
