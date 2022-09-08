@@ -3,7 +3,6 @@ const {
   selectArticleById,
   selectAllUsers,
   updateArticleById,
-  searchArticlesByTopic,
   selectArticleByIdComment,
 } = require("../models/news.js");
 
@@ -72,11 +71,3 @@ exports.getArticlesByIdComment = (req, res, next) => {
     .catch(next);
 };
 
-exports.getArticlesByTopic = (req, res, next) => {
-  const myArg = req.query.topic;
-  searchArticlesByTopic(myArg)
-    .then((articles) => {
-      res.status(200).send({ articles });
-    })
-    .catch(next);
-};

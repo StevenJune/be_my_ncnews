@@ -1,4 +1,4 @@
-\c nc_news
+\c nc_news_test
 select * from topics;
 select * from comments;
 select * from users;
@@ -16,17 +16,3 @@ select article_id,title,topic,author,body,created_at,votes,count(*) as comment_c
         group by article_id,title,topic,author,body,created_at,votes 
         --"having article_id = $1
 order by created_at desc        
-
-
---\c nc_news_test
---select * from topics;
---select * from comments;
---select * from users;
---select * from articles;
---article_id     title  topic   |    author  body   created_at      | votes 
-
---    body: "Nobis consequatur animi. Ullam nobis quaerat voluptates veniam.",
---    votes: 7,
---    author: "grumpy19",
---    article_id: 4,
---    created_at
