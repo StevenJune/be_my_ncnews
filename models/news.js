@@ -69,6 +69,7 @@ exports.selectArticleByIdComment = (article_id) => {
 };
 
 exports.searchArticlesByTopic = (topic) => {
+  console.log("step 01");
   const qryparam = [];
   let str1 =
     "select article_id,title,topic,author,body,created_at,votes,count(*) as comment_count " +
@@ -80,14 +81,42 @@ exports.searchArticlesByTopic = (topic) => {
     qryparam.push(topic);
   }
   str1 += " order by created_at desc ";
-  return db.query(str1, qryparam).then(({ rows }) => {
-    const article = rows[0];
-    if (!article) {
-      return Promise.reject({
-        status: 400,
-        msg: `No article found`,
-      });
-    }
-    return rows; //article;
-  });
+
+  return db
+    .query("select * from topics where slug = $1", [topic])
+    .then(({ rows }) => {
+      const result = rows[0];
+      if (!result) {
+        return Promise.reject({
+          status: 404,
+          msg: `Topic table not found for topic : ${topic}`,
+        });
+      }
+      return topic;
+    })
+    .then((topic) => {
+      return db.query("select * from articles where topic = $1", [topic]);
+    })
+    .then(({ rows }) => {
+      const result = rows[0];
+      if (!result) {
+        console.log(result, "goto error step 031");
+        return Promise.reject({
+          status: 200,
+          msg: `Topic that exists but has no articles : ${topic}`,
+        });
+      }
+      return topic;
+    })
+    .then((topic) => {
+      return db.query(str1, qryparam);
+    })
+    .then(({ rows }) => {
+      const article = rows[0];
+      console.log("setup 04");
+      if (!article) {
+        return Promise.reject({ status: 404, msg: `No article found` });
+      }
+      return rows;
+    });
 };
