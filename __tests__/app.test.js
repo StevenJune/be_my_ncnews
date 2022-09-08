@@ -32,7 +32,7 @@ describe("3. GET /api/topics", () => {
       });
   });
 });
-
+// the following is outdated, but kept it for later reference only :)
 describe("4. GET /api/articles/:article_id", () => {
   test("status:200, responds with a single matching article", () => {
     const article_id = 2;
@@ -48,6 +48,7 @@ describe("4. GET /api/articles/:article_id", () => {
           topic: "mitch",
           created_at: "2020-10-16T05:03:00.000Z",
           votes: 0,
+          comment_count: "1",
         });
       });
   });
@@ -57,7 +58,7 @@ describe("4. GET /api/articles/:article_id", () => {
     return request(app)
       .get(`/api/articles/${article_id}`)
       .expect(400)
-      .then(({ body   }) => {
+      .then(({ body }) => {
         expect(body.msg).toBe(`No article found for article_id: ${article_id}`);
       });
   });
@@ -74,3 +75,151 @@ describe("4. GET /api/articles/:article_id", () => {
       });
   });
 });
+
+describe("5. GET /api/users", () => {
+  test("status:200, responds with an array of users objects", () => {
+    return request(app)
+      .get("/api/users")
+      .expect(200)
+      .then(({ body }) => {
+        const { users } = body;
+        expect(users).toBeInstanceOf(Array);
+        expect(users.length > 0).toBe(true);
+        users.forEach((users) => {
+          expect(users).toEqual(
+            expect.objectContaining({
+              username: expect.any(String),
+              name: expect.any(String),
+              avatar_url: expect.any(String),
+            })
+          );
+        });
+      });
+  });
+});
+
+describe("6. PATCH /api/articles/:article_id", () => {
+  it("status:201, responds with the updated article votes", () => {
+    const votesCount = {
+      inc_votes: 200,
+    };
+    return request(app)
+      .patch("/api/articles/5")
+      .send(votesCount)
+      .expect(201)
+      .then(({ body }) => {
+        expect(body.article).toEqual({
+          article_id: 5,
+          title: "UNCOVERED: catspiracy to bring down democracy",
+          votes: 200,
+          author: "rogersop",
+          body: "Bastet walks amongst us, and the cats are taking arms!",
+          created_at: "2020-08-03T13:14:00.000Z",
+          topic: "cats",
+        });
+      });
+  });
+
+  it("status:400, responds with invalid post key", () => {
+    const votesCount = {
+      inc_xotes: 200,
+    };
+    return request(app)
+      .patch("/api/articles/5")
+      .send(votesCount)
+      .expect(400)
+      .then(({ body }) => {
+        expect(body.msg).toBe(`post key field should have inc_votes`);
+      });
+  });
+
+  test("status:404, patch article_id does not exist in table", () => {
+    const article_id = 999;
+    const votesCount = {
+      inc_votes: 200,
+    };
+    return request(app)
+      .patch(`/api/articles/${article_id}`)
+      .send(votesCount)
+      .expect(404)
+      .then(({ body }) => {
+        expect(body.msg).toBe(
+          `No article found for updating votes in this article_id : ${article_id}`
+        );
+      });
+  });
+
+  test("status:400, invalid article_id feed in", () => {
+    const article_id = "banana";
+    const votesCount = {
+      inc_votes: 200,
+    };
+    return request(app)
+      .patch(`/api/articles/${article_id}`)
+      .send(votesCount)
+      .expect(400)
+      .then(({ body }) => {
+        expect(body.msg).toBe(
+          `invalid input syntax for type integer: "${article_id}"`
+        );
+      });
+  });
+
+  test("status:400, invalid value of inc_votes feed in", () => {
+    const article_id = "banana";
+    const votesCount = {
+      inc_votes: "a2b0c0d",
+    };
+    return request(app)
+      .patch(`/api/articles/${article_id}`)
+      .send(votesCount)
+      .expect(400)
+      .then(({ body }) => {
+        expect(body.msg).toBe(`invalid value of inc_votes`);
+      });
+  });
+});
+
+describe("7. GET /api/articles/:article_id", () => {
+  test("status:200, responds with a single matching article with comment count", () => {
+    const article_id = 3;
+    return request(app)
+      .get(`/api/articles/${article_id}`)
+      .expect(200)
+      .then(({ body }) => {
+        expect(body.article).toEqual({
+          article_id: article_id,
+          title: "Eight pug gifs that remind me of mitch",
+          topic: "mitch",
+          author: "icellusedkars",
+          body: "some gifs",
+          created_at: "2020-11-03T09:12:00.000Z",
+          votes: 0,
+          comment_count: "2",
+        });
+      });
+  });
+
+  test("status:400, article_id does not exist in table", () => {
+    const article_id = 999;
+    return request(app)
+      .get(`/api/articles/${article_id}`)
+      .expect(400)
+      .then(({ body }) => {
+        expect(body.msg).toBe(`No article found for article_id: ${article_id}`);
+      });
+  });
+
+  test("status:400, invalid article_id feed in", () => {
+    const article_id = "apple";
+    return request(app)
+      .get(`/api/articles/${article_id}`)
+      .expect(400)
+      .then(({ body }) => {
+        expect(body.msg).toBe(
+          `invalid input syntax for type integer: "${article_id}"`
+        );
+      });
+  });
+});
+
