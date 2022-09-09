@@ -8,6 +8,9 @@ const {
   patchArticlesById,
   getArticlesByIdComment,
   getArticlesByTopic,
+
+  getCommentsByArtId,
+  
 } = require("./controllers/news");
 
 const app = express();
@@ -18,6 +21,9 @@ app.get("/api/users", getUsers);
 app.patch("/api/articles/:article_id", patchArticlesById);
 app.get("/api/articles/:article_id", getArticlesByIdComment);
 app.get("/api/articles", getArticlesByTopic);
+app.get("/api/articles/:article_id/comments", getCommentsByArtId);
+
+
 
 // below lines will catch all the unmatch endpoints
 app.all("/*", (req, res) => {

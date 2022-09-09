@@ -69,7 +69,6 @@ exports.selectArticleByIdComment = (article_id) => {
 };
 
 exports.searchArticlesByTopic = (topic) => {
-  console.log("step 01");
   const qryparam = [];
   let str1 =
     "select article_id,title,topic,author,body,created_at,votes,count(*) as comment_count " +
@@ -100,7 +99,6 @@ exports.searchArticlesByTopic = (topic) => {
     .then(({ rows }) => {
       const result = rows[0];
       if (!result) {
-        console.log(result, "goto error step 031");
         return Promise.reject({
           status: 200,
           msg: `Topic that exists but has no articles : ${topic}`,
@@ -113,10 +111,42 @@ exports.searchArticlesByTopic = (topic) => {
     })
     .then(({ rows }) => {
       const article = rows[0];
-      console.log("setup 04");
       if (!article) {
         return Promise.reject({ status: 404, msg: `No article found` });
       }
       return rows;
+    });
+};
+
+exports.selectCommentsByArtId = (article_id) => {
+  return db
+    .query(
+      "select * from articles where article_id = $1 and " +
+        "article_id not in (select article_id from comments) ",
+      [article_id]
+    )
+    .then(({ rows }) => {
+      const result = rows[0];
+      if (result) {
+        return Promise.reject({
+          status: 400,
+          msg: `the article id exists, but there are no comments : ${article_id}`,
+        });
+      }
+      return article_id;
+    })
+    .then((article_id) => {
+      return db
+        .query("select * from comments where article_id = $1", [article_id])
+        .then(({ rows }) => {
+          const comment = rows[0];
+          if (!comment) {
+            return Promise.reject({
+              status: 404,
+              msg: `No comments found for this article_id: ${article_id}`,
+            });
+          }
+          return rows;
+        });
     });
 };
