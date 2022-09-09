@@ -68,7 +68,32 @@ exports.selectArticleByIdComment = (article_id) => {
     });
 };
 
-exports.searchArticlesByTopic = (topic) => {
+
+exports.searchArticlesByTopic = (qryArg) => {
+  const { topic, sortBy = "created_at", orderDirection = "desc" } = qryArg;
+   const whiteCol = {
+    author: "AUTHOR",
+    title: "TITLE",
+    article_id: "ARTICLE",
+    topic: "TOPIC",
+    created_at: "CREATED_AT",
+    votes: "VOTES",
+  };
+  const whiteDirection = { desc: "DESC", asc: "ASC" };
+
+  if (!(sortBy in whiteCol)) {
+    return Promise.reject({
+      status: 400,
+      msg: `please only "sortBy=" 'author';'title';'article_id';'topic';'created_at' and 'votes' for sorting items`,
+    });
+  }
+  if (!(orderDirection in whiteDirection)) {
+    return Promise.reject({
+      status: 400,
+      msg: `please "order=" either "desc" or "asc" ,Unknown sorting column`,
+    });
+  }
+
   const qryparam = [];
   let str1 =
     "select article_id,title,topic,author,body,created_at,votes,count(*) as comment_count " +
@@ -79,8 +104,8 @@ exports.searchArticlesByTopic = (topic) => {
     str1 += "having topic = $1 ";
     qryparam.push(topic);
   }
-  str1 += " order by created_at desc ";
-
+  str1 += ` order by ${sortBy} ${orderDirection}`;
+  console.log(str1, "str1");
   return db
     .query("select * from topics where slug = $1", [topic])
     .then(({ rows }) => {
@@ -152,14 +177,17 @@ exports.selectCommentsByArtId = (article_id) => {
 };
 
 exports.insertCommentByArtid = (newComment) => {
-  if (newComment.hasOwnProperty('body') && newComment.hasOwnProperty('username')) {}
-  else {
+  if (
+    newComment.hasOwnProperty("body") &&
+    newComment.hasOwnProperty("username")
+  ) {
+  } else {
     return Promise.reject({
       status: 400,
       msg: `Missing value input (body/username)`,
     });
   }
-  const { body, article_id,username } = newComment;
+  const { body, article_id, username } = newComment;
 
   return db
     .query("select * from articles where article_id = $1", [article_id])
@@ -189,8 +217,9 @@ exports.insertCommentByArtid = (newComment) => {
     })
     .then((newComment) => {
       const { username, body, article_id } = newComment;
-      const qryparam = [body, article_id, username]
-      const str1 = "insert into comments (body, article_id,author) values ($1,$2,$3) returning *"
+      const qryparam = [body, article_id, username];
+      const str1 =
+        "insert into comments (body, article_id,author) values ($1,$2,$3) returning *";
       return db.query(str1, qryparam);
     })
     .then(({ rows }) => {

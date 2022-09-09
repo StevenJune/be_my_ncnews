@@ -23,7 +23,7 @@ app.get("/api/topics", getTopics);
 app.get("/api/users", getUsers);
 app.patch("/api/articles/:article_id", patchArticlesById);
 app.get("/api/articles/:article_id", getArticlesByIdComment);
-app.get("/api/articles", getArticlesByTopic);
+app.get("/api/articles", getArticlesByTopic);///
 app.get("/api/articles/:article_id/comments", getCommentsByArtId);
 app.post("/api/articles/:article_id/comments", postCommentsByArtId);
 
@@ -42,6 +42,7 @@ app.use((err, req, res, next) => {
     res.status(err.status).send({ msg: err.msg });
   } else {
     // respond with an internal server error
+  
     res.status(500).send({ msg: "Internal Server Error" });
   }
 });

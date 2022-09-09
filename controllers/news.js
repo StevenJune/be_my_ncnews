@@ -70,7 +70,8 @@ exports.getArticlesByIdComment = (req, res, next) => {
 };
 
 exports.getArticlesByTopic = (req, res, next) => {
-  const myArg = req.query.topic;
+  //const myArg = req.query.topic;
+  let myArg = req.query;
   searchArticlesByTopic(myArg)
     .then((articles) => {
       res.status(200).send({ articles });
