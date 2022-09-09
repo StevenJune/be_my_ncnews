@@ -194,10 +194,6 @@ exports.insertCommentByArtid = (newComment) => {
       return db.query(str1, qryparam);
     })
     .then(({ rows }) => {
-      const comment = rows[0];
-      if (!comment) {
-        return Promise.reject({ status: 500, msg: `Cannot post comment call IT supports` });
-      }
       return rows;
     });
 };

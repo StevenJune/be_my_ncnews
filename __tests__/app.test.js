@@ -223,7 +223,7 @@ describe("7. GET /api/articles/:article_id", () => {
   });
 });
 
-describe("8. GET /api/articles?topic=:topic", () => {
+describe("8. GET /api/articles?topic=:topic,sortby=:sortBy,order=:orderdirection", () => {
   test("status:200, provide topic and responds with array of sorted articles", () => {
     const topic = "mitch";
     return request(app)
