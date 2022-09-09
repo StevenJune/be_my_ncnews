@@ -223,16 +223,17 @@ describe("7. GET /api/articles/:article_id", () => {
   });
 });
 
-describe("8. GET /api/articles?topic=:topic,sortby=:sortBy,order=:orderdirection", () => {
+describe.only("8. GET /api/articles?topic=:topic,sortby=:sortBy,orderDirection=:orderDirection", () => {
   test("status:200, provide topic and responds with array of sorted articles", () => {
     const topic = "mitch";
+    const sortBy = 'created_at'
     return request(app)
-      .get(`/api/articles?topic=${topic}`) //${topic}`)
+      .get(`/api/articles?topic=${topic}&sortBy=${sortBy}`) //${topic}`)
       .expect(200)
       .then(({ body }) => {
         const { articles } = body;
         expect(articles).toBeInstanceOf(Object);
-        expect(articles).toBeSortedBy("created_at", { descending: true });
+        expect(articles).toBeSortedBy(sortBy, { descending: true });
         articles.forEach((article) => {
           expect(article).toEqual(
             expect.objectContaining({
@@ -271,7 +272,61 @@ describe("8. GET /api/articles?topic=:topic,sortby=:sortBy,order=:orderdirection
         expect(body.msg).toBe(`Topic table not found for topic : ${topic}`);
       });
   });
+
+  test("status:400, Incorrect sorting column input", () => {
+    const topic = "unknown";
+    const sortBy = "unknownCol"
+    return request(app)
+      .get(`/api/articles?topic=${topic}&sortBy=${sortBy}`)
+      .expect(400)
+      .then(({ body }) => {
+        expect(body.msg).toBe(`please only "sortBy=" 'author';'title';'article_id';'topic';'created_at' and 'votes' for sorting items`);
+      });
+  });
+
+  test("status:400, Either descending or ascending ordering", () => {
+    const topic = "unknown";
+    const orderDirection = "unknownOrderWay"
+    return request(app)
+      .get(`/api/articles?topic=${topic}&orderDirection=${orderDirection}`)
+      .expect(400)
+      .then(({ body }) => {
+        expect(body.msg).toBe(`please "order=" either "desc" or "asc" ,Unknown sorting column`);
+      });
+  });
+
+  test("status:200, provide topic and responds with assigned sorted title ascending", () => {
+    const topic = "mitch";
+    const sortBy = 'title'
+    const orderDirection = 'asc'
+    return request(app)
+      .get(`/api/articles?topic=${topic}&sortBy=${sortBy}&orderDirection=${orderDirection}`) //${topic}`)
+      .expect(200)
+      .then(({ body }) => {
+        const { articles } = body;
+        expect(articles).toBeInstanceOf(Object);
+        expect(articles).toBeSortedBy(sortBy, { descending: false });
+        articles.forEach((article) => {
+          expect(article).toEqual(
+            expect.objectContaining({
+              author: expect.any(String),
+              title: expect.any(String),
+              article_id: expect.any(Number),
+              topic: expect.any(String),
+              created_at: expect.any(String),
+              votes: expect.any(Number),
+              comment_count: expect.any(String),
+            })
+          );
+        });
+      });
+  });
+
+
+
 });
+
+
 
 describe("9. GET /api/articles/:article_id/comments", () => {
   test("status:200, responds with matching with article_id", () => {
