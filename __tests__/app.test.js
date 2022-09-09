@@ -298,11 +298,11 @@ describe("9. GET /api/articles/:article_id/comments", () => {
   });
   //});
 
-  test("status:400, article_id does not exist in table", () => {
+  test("status:404, article_id does not exist in table", () => {
     const article_id = 999;
     return request(app)
       .get(`/api/articles/${article_id}/comments`)
-      .expect(400)
+      .expect(404)
       .then(({ body }) => {
         expect(body.msg).toBe(
           `No comments found for this article_id: ${article_id}`
@@ -321,5 +321,16 @@ describe("9. GET /api/articles/:article_id/comments", () => {
         );
       });
   });
-});
 
+  test("status:400, the article id exists, but there are no comments", () => {
+    const article_id = 12;
+    return request(app)
+      .get(`/api/articles/${article_id}/comments`)
+      .expect(400)
+      .then(({ body }) => {
+        expect(body.msg).toBe(
+          `the article id exists, but there are no comments : ${article_id}`
+        );
+      });
+  });
+});

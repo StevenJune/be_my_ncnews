@@ -120,16 +120,33 @@ exports.searchArticlesByTopic = (topic) => {
 
 exports.selectCommentsByArtId = (article_id) => {
   return db
-    .query("select * from comments where article_id = $1", [article_id])
+    .query(
+      "select * from articles where article_id = $1 and " +
+        "article_id not in (select article_id from comments) ",
+      [article_id]
+    )
     .then(({ rows }) => {
-      const comment = rows[0];
-      if (!comment) {
+      const result = rows[0];
+      if (result) {
         return Promise.reject({
           status: 400,
-          msg: `No comments found for this article_id: ${article_id}`,
+          msg: `the article id exists, but there are no comments : ${article_id}`,
         });
       }
-      return rows;
+      return article_id;
+    })
+    .then((article_id) => {
+      return db
+        .query("select * from comments where article_id = $1", [article_id])
+        .then(({ rows }) => {
+          const comment = rows[0];
+          if (!comment) {
+            return Promise.reject({
+              status: 404,
+              msg: `No comments found for this article_id: ${article_id}`,
+            });
+          }
+          return rows;
+        });
     });
 };
-
