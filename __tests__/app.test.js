@@ -223,3 +223,52 @@ describe("7. GET /api/articles/:article_id", () => {
   });
 });
 
+describe("8. GET /api/articles?topic=:topic", () => {
+  test("status:200, provide topic and responds with array of sorted articles", () => {
+    const topic = "mitch";
+    return request(app)
+      .get(`/api/articles?topic=${topic}`) //${topic}`)
+      .expect(200)
+      .then(({ body }) => {
+        const { articles } = body;
+        expect(articles).toBeInstanceOf(Object);
+        expect(articles).toBeSortedBy("created_at", { descending: true });
+        articles.forEach((article) => {
+          expect(article).toEqual(
+            expect.objectContaining({
+              author: expect.any(String),
+              title: expect.any(String),
+              article_id: expect.any(Number),
+              topic: expect.any(String),
+              created_at: expect.any(String),
+              votes: expect.any(Number),
+              comment_count: expect.any(String),
+            })
+          );
+        });
+      });
+  });
+  //});
+
+  test("status:200, topic that exists but has no articles", () => {
+    const topic = "paper"  
+    return request(app)
+      .get(`/api/articles?topic=${topic}`) 
+      .expect(200)
+      .then(({ body }) => {
+        expect(body.msg).toBe(`Topic that exists but has no articles : ${topic}`);
+      });
+  });
+
+  test("status:404, Topic master not found for this topic", () => {
+    const topic = "unknown";
+    return request(app)
+      .get(`/api/articles?topic=${topic}`) 
+      .expect(404)
+      .then(({ body }) => {
+        expect(body.msg).toBe(`Topic table not found for topic : ${topic}`);
+      });
+  });
+
+
+});

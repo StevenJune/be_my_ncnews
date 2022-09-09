@@ -7,6 +7,7 @@ const {
   getUsers,
   patchArticlesById,
   getArticlesByIdComment,
+  getArticlesByTopic,
 } = require("./controllers/news");
 
 const app = express();
@@ -16,6 +17,7 @@ app.get("/api/topics", getTopics);
 app.get("/api/users", getUsers);
 app.patch("/api/articles/:article_id", patchArticlesById);
 app.get("/api/articles/:article_id", getArticlesByIdComment);
+app.get("/api/articles", getArticlesByTopic);
 
 // below lines will catch all the unmatch endpoints
 app.all("/*", (req, res) => {
@@ -28,16 +30,14 @@ app.use((err, req, res, next) => {
     res.status(400).send({ msg: err.message || "Bad Request" });
   } else if (err.status && err.msg) {
     res.status(err.status).send({ msg: err.msg });
-  }
-  // handle specific psql errors
-  else {
+  } else {
     // respond with an internal server error
     res.status(500).send({ msg: "Internal Server Error" });
   }
 });
 
-app.use((err, req, res, next) => {
-  res.status(500).send("Internal server error!");
-});
+//app.use((err, req, res, next) => {
+//  res.status(500).send("Internal server error!");
+//});
 
 module.exports = app;
