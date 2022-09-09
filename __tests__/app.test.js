@@ -223,7 +223,7 @@ describe("7. GET /api/articles/:article_id", () => {
   });
 });
 
-describe("8. GET /api/articles?topic=:topic", () => {
+describe("8. GET /api/articles?topic=:topic,sortby=:sortBy,order=:orderdirection", () => {
   test("status:200, provide topic and responds with array of sorted articles", () => {
     const topic = "mitch";
     return request(app)
@@ -333,4 +333,78 @@ describe("9. GET /api/articles/:article_id/comments", () => {
         );
       });
   });
+});
+
+describe("10. POST /api/articles/:article_id/comments", () => {
+  test("status:201, responds with matching with article_id", () => {
+    const article_id = 1;
+    const newComment = {
+      username: "lurker",
+      body: "SQL statement is a mash",
+    };
+    return request(app)
+      .post(`/api/articles/${article_id}/comments`)
+      .send(newComment)
+      .expect(201)
+      .then(({ body }) => {
+        const { comment } = body;
+        expect(comment).toBeInstanceOf(Array);
+        expect(comment[0].article_id).toEqual(article_id);
+        expect(comment[0].author).toEqual(newComment.username);
+        expect(comment[0].body).toEqual(newComment.body);
+      });
+  });
+
+  test("status:404, Articles table not found for this article_id", () => {
+    const article_id = 888;
+    const newComment = {
+      username: "lurker",
+      body: "SQL statement is a mash",
+    };
+    return request(app)
+      .post(`/api/articles/${article_id}/comments`)
+      .send(newComment)
+      .expect(404)
+      .then(({ body }) => {
+        expect(body.msg).toBe(
+          `Articles table not found for this article_id : ${article_id}`
+        );
+      });
+  });
+
+  test("status:404, Users table not found for this username", () => {
+    const article_id = 1;
+    const newComment = {
+      username: "xxlurkerxx",
+      body: "SQL statement is a mash",
+    };
+    return request(app)
+      .post(`/api/articles/${article_id}/comments`)
+      .send(newComment)
+      .expect(404)
+      .then(({ body }) => {
+        expect(body.msg).toBe(
+          `Users table not found for this username : ${newComment.username}`
+        );
+      });
+  });
+
+  test("status:400, Missing input values from body", () => {
+    const article_id = 1;
+    const newComment = {
+      username: "xxlurkerxx",
+      //body: "SQL statement is a mash",
+    };
+    return request(app)
+      .post(`/api/articles/${article_id}/comments`)
+      .send(newComment)
+      .expect(400)
+      .then(({ body }) => {
+        expect(body.msg).toBe(
+          `Missing value input (body/username)`
+        );
+      });
+  });
+
+
 });

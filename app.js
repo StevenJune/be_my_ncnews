@@ -10,10 +10,13 @@ const {
   getArticlesByTopic,
 
   getCommentsByArtId,
-  
+  postCommentsByArtId,
+
 } = require("./controllers/news");
 
 const app = express();
+app.use(express.json());
+
 
 app.get("/api", getApi);
 app.get("/api/topics", getTopics);
@@ -22,7 +25,7 @@ app.patch("/api/articles/:article_id", patchArticlesById);
 app.get("/api/articles/:article_id", getArticlesByIdComment);
 app.get("/api/articles", getArticlesByTopic);
 app.get("/api/articles/:article_id/comments", getCommentsByArtId);
-
+app.post("/api/articles/:article_id/comments", postCommentsByArtId);
 
 
 // below lines will catch all the unmatch endpoints
@@ -35,6 +38,7 @@ app.use((err, req, res, next) => {
   if (err.code === "22P02") {
     res.status(400).send({ msg: err.message || "Bad Request" });
   } else if (err.status && err.msg) {
+    
     res.status(err.status).send({ msg: err.msg });
   } else {
     // respond with an internal server error

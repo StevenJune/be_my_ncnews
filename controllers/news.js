@@ -6,6 +6,7 @@ const {
   selectArticleByIdComment,
   searchArticlesByTopic,
   selectCommentsByArtId,
+  insertCommentByArtid,
 
 } = require("../models/news.js");
 
@@ -44,12 +45,7 @@ exports.getUsers = (req, res, next) => {
 
 exports.patchArticlesById = (req, res, next) => {
   const article_id = req.params.article_id;
-  let body = "";
-  req.on("data", (packet) => {
-    body += packet.toString();
-  });
-  req.on("end", () => {
-    let amendArticle = JSON.parse(body);
+  const amendArticle = req.body
     if (!amendArticle.inc_votes) {
       res.status(400).send({ msg: "post key field should have inc_votes" });
     } else if (Number.isInteger(amendArticle.inc_votes) === false) {
@@ -62,7 +58,6 @@ exports.patchArticlesById = (req, res, next) => {
         })
         .catch(next);
     }
-  });
 };
 
 exports.getArticlesByIdComment = (req, res, next) => {
@@ -92,4 +87,14 @@ exports.getCommentsByArtId = (req, res, next) => {
     .catch(next);
 };
 
+exports.postCommentsByArtId = (req, res, next) => {
+    const newComment = req.body
+    newComment.article_id = req.params.article_id;
+    insertCommentByArtid(newComment)
+      .then((comment) => {
+        res.status(201).send({ comment });
+      })
+      .catch(next);
+
+};
 
