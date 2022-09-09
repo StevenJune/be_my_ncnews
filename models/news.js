@@ -150,3 +150,47 @@ exports.selectCommentsByArtId = (article_id) => {
         });
     });
 };
+
+exports.insertCommentByArtid = (newComment) => {
+  const { body, article_id,username } = newComment;
+
+  return db
+    .query("select * from articles where article_id = $1", [article_id])
+    .then(({ rows }) => {
+      const result = rows[0];
+      if (!result) {
+        return Promise.reject({
+          status: 404,
+          msg: `Articles table not found for this article_id : ${article_id}`,
+        });
+      }
+      return username;
+    })
+    .then((username) => {
+      return db.query("select * from users where username = $1", [username]);
+    })
+    .then(({ rows }) => {
+      const result = rows[0];
+      //console.log('control 01');
+      if (!result) {
+        return Promise.reject({
+          status: 404,
+          msg: `Users table not found for this username : ${username}`,
+        });
+      }
+      return newComment;
+    })
+    .then((newComment) => {
+      const { username, body, article_id } = newComment;
+      const qryparam = [body, article_id, username]
+      const str1 = "insert into comments (body, article_id,author) values ($1,$2,$3) returning *"
+      return db.query(str1, qryparam);
+    })
+    .then(({ rows }) => {
+      const comment = rows[0];
+      if (!comment) {
+        return Promise.reject({ status: 500, msg: `Cannot post comment call IT supports` });
+      }
+      return rows;
+    });
+};

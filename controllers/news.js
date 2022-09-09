@@ -6,6 +6,7 @@ const {
   selectArticleByIdComment,
   searchArticlesByTopic,
   selectCommentsByArtId,
+  insertCommentByArtid,
 
 } = require("../models/news.js");
 
@@ -92,4 +93,19 @@ exports.getCommentsByArtId = (req, res, next) => {
     .catch(next);
 };
 
+exports.postCommentsByArtId = (req, res, next) => {
+  let body = "";
+  req.on("data", (packet) => {
+    body += packet.toString();
+  });
+  req.on("end", () => {
+    const newComment = JSON.parse(body);
+    newComment.article_id = req.params.article_id;
+    insertCommentByArtid(newComment)
+      .then((comment) => {
+        res.status(201).send({ comment });
+      })
+      .catch(next);
+  });
+};
 
