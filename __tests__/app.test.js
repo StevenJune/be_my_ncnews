@@ -388,4 +388,23 @@ describe("10. POST /api/articles/:article_id/comments", () => {
         );
       });
   });
+
+  test("status:400, Missing input values from body", () => {
+    const article_id = 1;
+    const newComment = {
+      username: "xxlurkerxx",
+      //body: "SQL statement is a mash",
+    };
+    return request(app)
+      .post(`/api/articles/${article_id}/comments`)
+      .send(newComment)
+      .expect(400)
+      .then(({ body }) => {
+        expect(body.msg).toBe(
+          `Missing value input (body/username)`
+        );
+      });
+  });
+
+
 });

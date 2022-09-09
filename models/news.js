@@ -152,6 +152,13 @@ exports.selectCommentsByArtId = (article_id) => {
 };
 
 exports.insertCommentByArtid = (newComment) => {
+  if (newComment.hasOwnProperty('body') && newComment.hasOwnProperty('username')) {}
+  else {
+    return Promise.reject({
+      status: 400,
+      msg: `Missing value input (body/username)`,
+    });
+  }
   const { body, article_id,username } = newComment;
 
   return db
