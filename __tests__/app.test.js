@@ -251,24 +251,75 @@ describe("8. GET /api/articles?topic=:topic", () => {
   //});
 
   test("status:200, topic that exists but has no articles", () => {
-    const topic = "paper"  
+    const topic = "paper";
     return request(app)
-      .get(`/api/articles?topic=${topic}`) 
+      .get(`/api/articles?topic=${topic}`)
       .expect(200)
       .then(({ body }) => {
-        expect(body.msg).toBe(`Topic that exists but has no articles : ${topic}`);
+        expect(body.msg).toBe(
+          `Topic that exists but has no articles : ${topic}`
+        );
       });
   });
 
   test("status:404, Topic master not found for this topic", () => {
     const topic = "unknown";
     return request(app)
-      .get(`/api/articles?topic=${topic}`) 
+      .get(`/api/articles?topic=${topic}`)
       .expect(404)
       .then(({ body }) => {
         expect(body.msg).toBe(`Topic table not found for topic : ${topic}`);
       });
   });
-
-
 });
+
+describe("9. GET /api/articles/:article_id/comments", () => {
+  test("status:200, responds with matching with article_id", () => {
+    const article_id = 1;
+    return request(app)
+      .get(`/api/articles/${article_id}/comments`)
+      .expect(200)
+      .then(({ body }) => {
+        const { comments } = body;
+        expect(comments).toBeInstanceOf(Object);
+        comments.forEach((comment) => {
+          expect(comment).toEqual(
+            expect.objectContaining({
+              author: expect.any(String),
+              body: expect.any(String),
+              comment_id: expect.any(Number),
+              article_id: expect.any(Number),
+              created_at: expect.any(String),
+              votes: expect.any(Number),
+            })
+          );
+        });
+      });
+  });
+  //});
+
+  test("status:400, article_id does not exist in table", () => {
+    const article_id = 999;
+    return request(app)
+      .get(`/api/articles/${article_id}/comments`)
+      .expect(400)
+      .then(({ body }) => {
+        expect(body.msg).toBe(
+          `No comments found for this article_id: ${article_id}`
+        );
+      });
+  });
+
+  test("status:400, invalid article_id feed in", () => {
+    const article_id = "banana";
+    return request(app)
+      .get(`/api/articles/${article_id}/comments`)
+      .expect(400)
+      .then(({ body }) => {
+        expect(body.msg).toBe(
+          `invalid input syntax for type integer: "${article_id}"`
+        );
+      });
+  });
+});
+
